@@ -47,7 +47,12 @@ def do_operation(operator):
         return None
 
 def is_adjacent(xy1, xy2):
-    pass
+    x1, y1 = xy1
+    x2, y2 = xy2
+
+    dx, dy = x1 - x2, y1 - y2
+
+    return (dx == 0 and abs(dy) == 1) or (dy == 0 and abs(dx) == 1)
 
 def get_domains(size, cages):
     domains = {}
@@ -182,7 +187,7 @@ def parseGenerateOutput(s,step):
     #print(a)
     return example ,a,rect
 
- class KenKen(csp.CSP):
+class KenKen(csp.CSP):
     def __init__(self, size, cages):
 
         variables = [members for members, _, _ in cages]
