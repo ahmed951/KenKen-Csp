@@ -16,7 +16,16 @@ def are_in_same_row_or_col(xy1, xy2):
     pass
 
 def conflicting(A, a, B, b):
-    pass
+    for i in range(len(A)):
+        for j in range(len(B)):
+            mA = A[i]
+            mB = B[j]
+
+            ma = a[i]
+            mb = b[j]
+            if are_in_same_row_or_col(mA, mB) and ma == mb:
+                return True
+    return False
 
 def satisfies(values, operation, target):
     pass
@@ -28,10 +37,32 @@ def is_adjacent(xy1, xy2):
     pass
 
 def get_domains(size, cages):
-    pass
+    domains = {}
+    for cage in cages:
+        members, operator, target = cage
+
+        domains[members] = list(product(range(1, size + 1), repeat=len(members)))
+
+        qualifies = lambda values: not conflicting(members, values, members, values) and satisfies(values, do_operation(operator), target)
+
+        domains[members] = list(filter(qualifies, domains[members]))
+
+    return domains
 
 def get_neighbors(cages):
-    pass
+
+    neighbors = {}
+    for members, _, _ in cages:
+        neighbors[members] = []
+
+    for A, _, _ in cages:
+        for B, _, _ in cages:
+            if A != B and B not in neighbors[A]:
+                if conflicting(A, [-1] * len(A), B, [-1] * len(B)):
+                    neighbors[A].append(B)
+                    neighbors[B].append(A)
+
+    return neighbors
 
 def parse(lines):
     lines = lines.splitlines(True) if isinstance(lines, str) else lines
@@ -138,4 +169,19 @@ def parseGenerateOutput(s,step):
     #print(a)
     return example ,a,rect
 
- 
+ class KenKen(csp.CSP):
+    def __init__(self, size, cages):
+
+        variables = [members for members, _, _ in cages]
+        
+        domains = get_domains(size, cages)
+
+        neighbors = get_neighbors(cages)
+
+        csp.CSP.__init__(self, variables, domains, neighbors, self.constraint)
+
+        self.size = size
+
+    def constraint(self, A, a, B, b):
+
+        return A == B or not conflicting(A, a, B, b)
