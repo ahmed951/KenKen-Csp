@@ -206,12 +206,12 @@ class KenKen(csp.CSP):
 
     def solve_puzzle(self, size,algo):
         if(algo == "1"):
-            soln = csp.backtracking_search(self)
+            soln = csp.backTrackingAlgorithm(self)
             print("Entered")
         elif(algo == "2"):
-            soln = csp.backtracking_search(self, inference=csp.forward_checking)
+            soln = csp.backTrackingAlgorithm(self, inf='forwad_checking')
         elif(algo == "3"):
-            soln = csp.backtracking_search(self, inference=csp.mac)
+            soln = csp.backTrackingAlgorithm(self, inf='ac3')
 
         solution = np.empty((size,size),dtype=object)
         solution.fill("")
@@ -223,3 +223,15 @@ class KenKen(csp.CSP):
         solution = solution.tolist()
         
         return solution         
+
+    def changer(self,event,step):
+        
+        row = int(event.x/step)  
+        column = int(event.y/step)
+        return row, column
+
+    def resetnum(self,size):
+
+        numbers = np.zeros((self.size,self.size),dtype=np.int32).tolist()
+
+        return numbers 
