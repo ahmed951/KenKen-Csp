@@ -2,6 +2,8 @@
 import numpy as np
 from kenkenClass import *
 from tkinter import *
+from time import time
+
 
 class KenKenGUI(Frame):
     def __init__(self, master):
@@ -11,18 +13,18 @@ class KenKenGUI(Frame):
         self.generateSizeParameters()
         self.ex ,self.currentpuzzle , self.rects = parseGenerateOutput(self.size,self.step)
 
-        
+        #print("example", self.currentpuzzle)
         size, cages = parse(self.ex)
-        
+        #print("cages", cages)
         self.kenken = KenKen(size, cages)
 
         self.generateChoices()
         
-
-        
         self.w = Canvas(master, width=502, height=503)
         self.w.pack()
-        
+        for rect in self.rects:
+            self.w.create_rectangle(rect[0],rect[1],rect[2],rect[3],fill=rect[4],stipple="gray25")
+
         self.lblSize = Label(self, text="Size:", font="Arial 10 bold")
         self.lblSize.pack()
         mystr = StringVar()
@@ -37,6 +39,7 @@ class KenKenGUI(Frame):
         self.E2 = Entry(self, textvariable=algo, width=5, bg="#888",
            fg="#fff")
         self.E2.pack()
+        #self.E1.place(bordermode=OUTSIDE, x=0, y=0)
         
         self.lbl2 = Label(self, text="", font="Arial 10 bold")
         self.lbl2.pack()
@@ -46,7 +49,7 @@ class KenKenGUI(Frame):
         
         self.movelist = np.zeros((self.size,self.size),dtype=np.int32).tolist()
 
-        self.w.bind("<ButtonRelease-1>", self.change) 
+        self.w.bind("<ButtonRelease-1>", self.change) #Binds all cells in board grid to change() method 
         self.pack()
 
     def generateSizeParameters(self):
@@ -56,7 +59,7 @@ class KenKenGUI(Frame):
         opStepsY = [20,20,20,20,15,15,15]
         opStepsX = [25,25,25,25,20,20,17]
         
-        #self.step = steps[self.size - 3]
+        
         self.numberStepY = numberStepsY[self.size - 3]
         self.numberStepX = numberStepsX[self.size - 3]
         self.opStepY = opStepsY[self.size - 3]
@@ -87,12 +90,14 @@ class KenKenGUI(Frame):
 
         self.generateSizeParameters()
 
+        
         maxY = self.opStepY + self.step * self.size
         for i in range(0, 500, self.step):
             for j in range(0, 500, self.step):
                 x = j + self.step
                 y = i + self.step
                 self.sqlist.append(self.w.create_rectangle(j, i, x, y))
+
 
         fontSize1 = "20"
         fontSize2 = "20"
@@ -131,9 +136,13 @@ class KenKenGUI(Frame):
 
         #Buttons 
         self.buttonlist = []
+        self.btn_solve = Button(self, text="Solve Puzzle")
+        self.btn_solve.bind("<ButtonRelease-1>", self.solve)
         self.btn_generate = Button(self, text="Generate Puzzle")
         self.btn_generate.bind("<ButtonRelease-1>", self.generate)
+        self.btn_solve.pack(side = BOTTOM, fill = Y, expand=YES)
         self.btn_generate.pack(side = LEFT, fill = X, expand = YES)
+        self.buttonlist.append(self.btn_solve)
         self.buttonlist.append(self.btn_generate)
         
     def change(self, event):
@@ -141,7 +150,7 @@ class KenKenGUI(Frame):
         if(self.lbl2["text"]):
             self.lbl2["text"] = "" 
 
-        #Updates the buttons to the current number
+        
         row, column = self.kenken.changer(event,self.step)
         self.movelist[row][column] +=1 
 
@@ -152,6 +161,52 @@ class KenKenGUI(Frame):
 
         self.w.itemconfigure(self.numbers[row][column], text = self.choice[self.movelist[row][column]])
 
+
+    def resetnums(self):
+        """ Resets all the current numbers user selected """
+        self.movelist = self.kenken.resetnum(self.size) 
+
+    def reset(self, event):
+        
+       
+        self.w.delete('all') 
+        self.resetnums()  
+
+ 
+        for i in range(len(self.buttonlist)):
+            self.buttonlist[i].destroy()
+
+        self.puzzle_widget()
+        self.lbl2["text"] = "" 
+
+    def resetGame(self, event):
+        
+        self.reset(event) 
+        
+
+    def solve(self, event):
+
+        #self.reset(event)
+        solution = []
+        size, cages = parse(self.ex)
+        self.kenken = KenKen(size, cages)
+        start_time = time()
+        if(int(Entry.get(self.E2)) >= 1 and int(Entry.get(self.E2)) <= 3 ):
+            solution = self.kenken.solve_puzzle(self.size,Entry.get(self.E2))
+        else:
+            self.lbl2["text"] = "Invalid Algorithm number"
+            return
+        end_time = time()
+        duration = end_time - start_time
+        print("duration", duration)
+        
+        #Display the solution to the user 
+        for row in range(len(solution)):  
+            for column in range(len(solution)):
+                self.w.itemconfigure(self.numbers[row][column], text=solution[row][column])
+
+
+        self.lbl2["text"] = "Puzzle Solved in " + str(round(duration,3)) + " seconds."
 
     def generate(self, event):
         
@@ -166,10 +221,12 @@ class KenKenGUI(Frame):
                 self.numbers = np.zeros((self.size,self.size),dtype=np.int32).tolist()
                 self.movelist = np.zeros((self.size,self.size),dtype=np.int32).tolist()
                 
-        
+                self.reset(event)
+                
+                for rect in self.rects:
+                    self.w.create_rectangle(rect[0],rect[1],rect[2],rect[3],fill=rect[4],stipple="gray25")
                 self.generateChoices()
                
- 
                 self.lbl2["text"] = "Puzzle Generated"  
             else:
                 self.lbl2["text"] = "Invalid size"
