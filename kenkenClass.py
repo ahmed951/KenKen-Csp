@@ -13,7 +13,7 @@ from random import random, shuffle, randint, choice
 
 
 def are_in_same_row_or_col(xy1, xy2):
-    pass
+    return (xy1[0] == xy2[0]) != (xy1[1] == xy2[1])
 
 def conflicting(A, a, B, b):
     for i in range(len(A)):
@@ -28,10 +28,23 @@ def conflicting(A, a, B, b):
     return False
 
 def satisfies(values, operation, target):
-    pass
+    for p in permutations(values):
+        if reduce(operation, p) == target:
+            return True
+
+    return False
 
 def do_operation(operator):
-    pass
+    if operator == '+':
+        return lambda a, b: a + b
+    elif operator == '-':
+        return lambda a, b: a - b
+    elif operator == '*':
+        return lambda a, b: a * b
+    elif operator == '/':
+        return lambda a, b: a / b
+    else:
+        return None
 
 def is_adjacent(xy1, xy2):
     pass
@@ -185,3 +198,23 @@ def parseGenerateOutput(s,step):
     def constraint(self, A, a, B, b):
 
         return A == B or not conflicting(A, a, B, b)
+
+    def solve_puzzle(self, size,algo):
+        if(algo == "1"):
+            soln = csp.backtracking_search(self)
+            print("Entered")
+        elif(algo == "2"):
+            soln = csp.backtracking_search(self, inference=csp.forward_checking)
+        elif(algo == "3"):
+            soln = csp.backtracking_search(self, inference=csp.mac)
+
+        solution = np.empty((size,size),dtype=object)
+        solution.fill("")
+        for x in soln:
+            for i in range(len(soln[x])):
+                t = x[i]
+                solution[t[0]-1,t[1]-1] = soln[x][i]
+        
+        solution = solution.tolist()
+        
+        return solution         
